@@ -111,9 +111,12 @@ App-name arguments are tab-completed from `/Applications`.
 Auto-detects which browser is frontmost (Safari, Chrome, Arc, Brave, Edge), with a `--browser` override.
 
 ```nu
-macify browser              # { browser, url, title } of front tab
+macify browser              # { browser, url, title, content } of front tab
+macify browser --reader     # Safari: toggle Reader View first for cleaner content
 macify browser url
 macify browser title
+macify browser content      # innerText of active tab
+macify browser content --reader   # Safari only
 macify browser tabs         # all tabs in front window
 macify browser open "https://example.com"
 macify browser open "https://example.com" --browser "Arc"

@@ -39,15 +39,42 @@ export def title [
     ^osascript -e $script | str trim
 }
 
-# {url, title} of active tab
+# Visible text content of active tab (innerText)
+# For Safari, optionally toggles Reader View first via Cmd+Shift+R for cleaner extraction.
+# Requires "Allow JavaScript from Apple Events" (Safari Develop menu) /
+# "Allow JavaScript from Apple Events" (Chromium browsers' View menu).
+export def content [
+    --browser (-b): string@"nu-complete browsers"
+    --reader              # Safari only: toggle Reader View before extracting
+] {
+    let b = ($browser | default (detect))
+    if $b == "Safari" {
+        if $reader {
+            ^osascript -e 'tell application "System Events" to keystroke "r" using {command down, shift down}' | ignore
+            sleep 500ms
+        }
+        ^osascript -e 'tell application "Safari" to do JavaScript "document.body.innerText" in document 1'
+        | str trim
+    } else if $b == "Firefox" {
+        # Firefox has no AppleScript JS bridge
+        ""
+    } else {
+        let script = $'tell application "($b)" to execute active tab of front window javascript "document.body.innerText"'
+        ^osascript -e $script | str trim
+    }
+}
+
+# {url, title, content} of active tab
 export def main [
     --browser (-b): string@"nu-complete browsers"
+    --reader              # Safari: toggle Reader View before extracting content
 ] {
     let b = ($browser | default (detect))
     {
         browser: $b
         url: (url --browser $b)
         title: (title --browser $b)
+        content: (if $reader { content --browser $b --reader } else { content --browser $b })
     }
 }
 
